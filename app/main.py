@@ -6,4 +6,10 @@ app = FastAPI(
 
 ) 
 
+#include routers
 app.include_router(upload_router)
+
+
+@app.get("/") 
+async def root():
+    return {"Backend is runing"}

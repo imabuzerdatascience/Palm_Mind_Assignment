@@ -1,13 +1,12 @@
 from fastapi import APIRouter , UploadFile , File , HTTPException
 from pydantic import BaseModel
-from typing import Optional
 import shutil
 import os 
-from datetime import datetime 
+
 
 router = APIRouter (
-    prefix= "/upload" , 
-    tags= ["Documnet "]
+    prefix= "/api" , 
+    tags= ["upload"]
 )
 
 Uploads_dir = "uploads"
@@ -19,13 +18,13 @@ class UploadResponse(BaseModel):
     message : str 
     filename : str 
     file_size : int 
-    status = "success"
+    status : str = "success"
 
 @router.post("/upload") 
-async def upload_documnet (
+async def upload_document (
     file : UploadFile = File(...)): 
 
-    if not file.filename.lower().endswitch((".pdf" , ".txt")) :
+    if not file.filename.lower().endswith((".pdf" , ".txt")) :
         raise HTTPException(status_code=400 , detail="only PDF and TXT are aloowed ")
     
     try : 
