@@ -2,6 +2,12 @@ from fastapi import APIRouter
 from pydantic import BaseModel 
 from typing import List , Optional 
 import uuid 
+from app.services.redis_service import redis_service
+from langchain_groq import ChatGroq 
+from dotenv import load_dotenv 
+import os 
+
+load_dotenv()
 
 router = APIRouter(prefix="/api", tags=["chat"])
 
