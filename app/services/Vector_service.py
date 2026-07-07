@@ -8,7 +8,7 @@ from typing import List
 
 class vector_service :
     def __init__(self):
-        self.client = QdrantClient(host="localhost" , port=6333)
+        self.client = QdrantClient(path="./qdrant_data")
         self.collection_name = "documnets" 
 
         # using HugginfaceEmbedding 

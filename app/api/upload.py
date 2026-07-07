@@ -3,7 +3,7 @@ from pydantic import BaseModel
 import shutil
 import os 
 from app.utils.chunkers import get_chunk
-from app.services.Vector_databse import vector_service 
+from app.services.Vector_service import vector_service 
 from langchain_community.document_loaders import PyPDFLoader , TextLoader
 
 router = APIRouter (
