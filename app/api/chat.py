@@ -11,7 +11,6 @@ load_dotenv()
 
 router = APIRouter(prefix="/api", tags=["chat"])
 
-chat_session = {}
 
 class ChatMessage(BaseModel) :
     message : str 
@@ -22,23 +21,45 @@ class ChatResponse(BaseModel) :
         session_id : str 
         mesaage_history : List[dict] 
 
+# LLm Setup (GROQ)
+llm = ChatGroq(
+      groq_api_key = os.getenv("Groq_APi_Key") ,
+      model_name = "mixtral-8x7b-32768" ,
+      temperature = 0.7
+)
+
+
 @router.post("/chat")
 async def chat_endpoint (request:ChatMessage) :
       
       session_id = request.session_id or str(uuid.uuid4()) 
 
-      if session_id not in chat_session :
-            chat_session[session_id] = []
+      # save user message 
+      redis_service.save_mesaage(session_id , "user" , request.message) 
+      
+      # get history 
+      history = redis_service.get_history(session_id)
 
-      chat_session[session_id].append({"role":"user" , "content":request.message })
+       # create prompt with history 
+      prompt = "You are a helpful assitant . Answer the question based on previous conversion " 
+      for msg in history : 
+            prompt += f"{msg["role"]}{msg["content"]}\n" 
+      promt += f"user : {request.message}\nassistant"
+       
+      # get response from llm 
+      try : 
+            response = llm.invoke(prompt)
+            bot_reply = response.content 
+      except Exception as e : 
+            bot_reply = "Sorry , I have trouble responding right now" 
 
-      bot_reply = f"Received your message: '{request.message}'. This is a simple response. (Session: {session_id[:8]}...)"
-
-      chat_session[session_id].append({"role":"assistant" , "content": bot_reply })
+      # save bot response 
+      redis_service.save_message(session_id , "assistant", bot_reply)
+      
 
      
       return ChatResponse(
             response=bot_reply ,
             session_id=session_id ,
-            message_history = chat_session[session_id][-6:]
+            message_history = history[-10]
       )
