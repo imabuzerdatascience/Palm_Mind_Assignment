@@ -14,7 +14,7 @@ router = APIRouter (
 Uploads_dir = "uploads"
 os.makedirs(Uploads_dir , exist_ok=True)
 
-vector_service = vector_service() 
+
 
 # For error handling 
 class UploadRequest(BaseModel):
@@ -24,18 +24,19 @@ class UploadRequest(BaseModel):
 
 # For error handling 
 class UploadResponse(BaseModel):
-    message : str 
-    filename : str 
-    file_size : int 
-    status : str = "success"
+    message: str
+    document_id: str
+    chunks_count: int
+    chunk_strategy: str
+    status: str = "success"
 
 @router.post("/upload") 
-async def upload_document (
-    file : UploadFile = File(...) , request = UploadRequest
-    ): 
+async def upload_document(
+    file: UploadFile = File(...)
+):
+    request = UploadRequest()
     
-    if request is None : 
-        request = UploadRequest()
+    
 
     if not file.filename.lower().endswith((".pdf" , ".txt")) :
         raise HTTPException(status_code=400 , detail="only PDF and TXT are aloowed ")
@@ -74,7 +75,7 @@ async def upload_document (
             document_id=document_id,
             chunks_count=len(chunks),
             chunk_strategy=request.chunk_strategy
-        )
+)
     except Exception as e : 
         raise HTTPException(status_code = 500 , detail = f"upload failed:{str(e)}")
 

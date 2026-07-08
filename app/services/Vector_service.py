@@ -1,11 +1,10 @@
 from qdrant_client import QdrantClient, models
 from qdrant_client.http.models import Distance, VectorParams, PointStruct 
-from langchain_groq import ChatGroq
 from langchain_community.embeddings import HuggingFaceEmbeddings   
 import uuid
 from datetime import datetime
 from typing import List
-from app.services.database import DatabaseService
+from app.services.database import db_service
 
 class VectorService :
     def __init__(self):
@@ -23,16 +22,18 @@ class VectorService :
         except :
             self.client.create_collection (
                 collection_name = self.collection_name  ,
-                vectors_config = VectorParams(size=384 ,distance = Distance.Cosine) 
+                vectors_config = VectorParams(size=384 , distance=Distance.COSINE) 
             )
     
 
 # store chunks 
-    def Store_chunks(self , chunks : List , filename:str) -> str:
+    def store_chunks(self, chunks: List, filename: str):
         self.create_collection()
 
         document_id =str(uuid.uuid4())
-        embbed_chunks = self.embedding.embed_documnets([chunk.page_content for chunk in chunks]) 
+        embedded_chunks = self.embedding.embed_documents(
+    [chunk.page_content for chunk in chunks]
+) 
 
         points = [ 
             PointStruct (
@@ -46,16 +47,19 @@ class VectorService :
                     "upload_time": datetime.now().isoformat()
                 }
             )
-            for i ,  vector in enumerate(embbed_chunks) 
+            for i, vector in enumerate(embedded_chunks)
 
         ]
         
-        self.client.upsert(collection_name=self.collection_name , point = points)
+        self.client.upsert(
+    collection_name=self.collection_name,
+    points=points
+)
 
         # save meta data in MYSQL
-        DatabaseService.save_document_metadata(document_id , filename)
+        db_service.save_document_metadata(document_id , filename)
 
         return document_id 
     
 
-vector_service = VectorParams()
+vector_service = VectorService()
