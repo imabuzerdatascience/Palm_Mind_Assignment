@@ -5,8 +5,9 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 import uuid
 from datetime import datetime
 from typing import List
+from app.services.database import DatabaseService
 
-class vector_service :
+class VectorService :
     def __init__(self):
         self.client = QdrantClient(path="./qdrant_data")
         self.collection_name = "documnets" 
@@ -50,3 +51,11 @@ class vector_service :
         ]
         
         self.client.upsert(collection_name=self.collection_name , point = points)
+
+        # save meta data in MYSQL
+        DatabaseService.save_document_metadata(document_id , filename)
+
+        return document_id 
+    
+
+vector_service = VectorParams()
